@@ -57,7 +57,7 @@ var remotePeer=$('#remotePeerId').val();
 
 $('remotePeer').html(remotePeer);
 
-      conn = peer.connect(remotePeer,{serialization:"binary-utf8"});
+      conn = peer.connect(remotePeer,{serialization:"binary"});
 
 console.log(conn.serialization);
 
@@ -196,6 +196,11 @@ if(data=="BEGIN_TRANSFER"){
  if (recvdSize==gFilesize  && gFilesize>0 ) {
     // Once, all the chunks are received, combine them to form a Blob
     console.log('chunk', fileChunks); 
+
+    //var array = new Uint8Array(fileChunks);
+
+
+
     const file = new Blob(fileChunks,{type:gFileType});
   
     console.log('Finished the transfer. All bytes recv', file); 
@@ -206,10 +211,10 @@ if(data=="BEGIN_TRANSFER"){
 var url = URL.createObjectURL(file);
 
  
-    $('#msgs').append('<br><a target="blank" href="'+url+'">Download</a>')
+    $('#msgs').append('<br><a target="blank" href="'+url+'" download="'+gFileName+'">Download</a>')
 
    // gotfile(gFileType,gFileName,fileChunks);
-    fileChunks = []; recvdSize=0; gFilesize=0;
+    fileChunks = []; recvdSize=0; gFilesize=0; gFileType="",gFileName="";
      incoming=false;
     
   }
@@ -324,7 +329,7 @@ var url = URL.createObjectURL(blob);
        * A chunkSize (in Bytes) is set here
        * I have it set to 16KB
        */
-      const chunkSize = 16 * 1024;
+      const chunkSize = 50 * 1024;
 
       // Keep chunking, and sending the chunks to the other peer
       while(buffer.byteLength) {
@@ -345,7 +350,8 @@ var url = URL.createObjectURL(blob);
 
 
 
-      peerConn.send({"text":"sending file","file":fileData});
+ peerConn.send({"text":"sending file","file":fileData});
+      
 
 console.log("sending chunk..."+buffer.byteLength)
 

@@ -4,7 +4,13 @@
 	<title>WebRTC By VIkash</title>
 	
 </head>
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet"/>
 <style>
+	body{
+		padding: 10px;
+		background-color: #1E293B;
+		color:white;
+	}
 	.custom_file {
   margin: auto;
   opacity: 0;
@@ -50,7 +56,7 @@ Messages:<br>
 <!-- The core Firebase JS SDK is always required and must be listed first -->
 <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
-<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet"/>
+
 
 <!-- TODO: Add SDKs for Firebase products that you want to use
      https://firebase.google.com/docs/web/setup#available-libraries -->
