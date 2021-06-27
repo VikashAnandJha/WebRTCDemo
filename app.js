@@ -40,7 +40,8 @@ peer.on('open', function(id) {
 
             console.log(data)
 
-            $('#msgs').append("<br>Peer Connected:"+data.peerId);
+if(data.peerId!=uid)
+            $('#msgs').append("Peer Connected: "+data.peerId+"<br>");
 
  
 
@@ -52,7 +53,20 @@ peer.on('open', function(id) {
   }
 
 var conn; var connected=false; var peerConn;
-  $('#peerConnectBtn').click(function(){
+
+var fileChunks = [];var gFileType,gFileName;
+
+var timer=null; var sentProgress=0;
+
+var incomingFileName=""; var incoming=false; var gFilesize=0,recvdSize=0,downloadURL="";
+
+
+  $('#peerConnectBtn').click(function(e){
+
+    e.preventDefault();
+
+$(this).html("connecting..")
+
 var remotePeer=$('#remotePeerId').val();
 
 $('remotePeer').html(remotePeer);
@@ -64,39 +78,38 @@ console.log(conn.serialization);
       conn.on('open', function() {
 
         connected=true;
+
+        $('#connectForm').hide();
+        $('#uploadFrom').show();
         // Receive messages 
         conn.on('data', function(data) {
 
 
 
-          console.log('UPER', data);
+          console.log('INCOMING DATA ', data);
           
           
- 
- if (data.toString() === 'Done!') {
-    // Once, all the chunks are received, combine them to form a Blob
-    console.log('chunk', fileChunks); 
-    const file = new Blob(fileChunks,{type:gFileType});
-  
-    console.log('Received', file); 
+  if(data+"".includes("SENT_PROGRESS"))
+{
+  var newdata=data;
+        sentProgress = newdata.replace ( /[^\d.]/g, '' ); 
+        sentProgress=Math.round( sentProgress )
+        console.log(sentProgress);
 
-var url = URL.createObjectURL(file);
+        $('#sentProgressbar').show();
+ $('#progress-sent').css('width', sentProgress+'%').attr('aria-valuenow', sentProgress); 
 
- 
-    $('#msgs').append('<br><a target="blank" href="'+url+'">Download</a>')
+ $('#sentstatus').html(sentProgress+"% Sent")
 
-   // gotfile(gFileType,gFileName,fileChunks);
-    fileChunks = [];
+
+ if(sentProgress==100){
+    $('#fileInfo').show();
+    $('#fileInfo').html(gFileName+" SENT Successfully")
     
-  }
-  else {
-    // Keep appending various file chunks 
-    gFileType=data.file.filetype;
-          gFileName=data.file.filename;
-
-    fileChunks.push(data.file.file);
-  }
-
+    $('#sentProgressbar').hide();
+ }
+        
+}
 
 
 });
@@ -120,11 +133,6 @@ var url = URL.createObjectURL(file);
   });
 
 
-var fileChunks = [];var gFileType,gFileName;
-
-var timer=null;
-
-var incomingFileName=""; var incoming=false; var gFilesize=0,recvdSize=0,downloadURL="";
 
   peer.on('connection', function(conn) { 
        
@@ -136,6 +144,12 @@ var incomingFileName=""; var incoming=false; var gFilesize=0,recvdSize=0,downloa
         // Receive messages
 
         conn.on('data', function(data) {
+
+
+
+
+
+
 
 
 
@@ -165,8 +179,22 @@ if(data=="BEGIN_TRANSFER"){
     console.log('gFIleSize'+gFilesize+" recvd size: "+recvdSize); 
 
     fileChunks.push(data.file.file);
-     console.log("Inserted to array");
 
+    var progress=(recvdSize/gFilesize)*100;
+
+ progress=   Math.round( progress )
+
+     console.log("Inserted to array:"+progress+"%");
+$('#recProgressbar').show();
+ $('#progress-rec').css('width', progress+'%').attr('aria-valuenow', progress); 
+
+$('#recstatus').html(progress+"% Recieved")
+
+
+ conn.send("SENT_PROGRESS_"+progress);
+
+
+ 
 
 
           }
@@ -214,14 +242,26 @@ var url = URL.createObjectURL(file);
     $('#msgs').append('<br><a target="blank" href="'+url+'" download="'+gFileName+'">Download</a>')
 
    // gotfile(gFileType,gFileName,fileChunks);
-    fileChunks = []; recvdSize=0; gFilesize=0; gFileType="",gFileName="";
+   
+
+
+      $('#fileInfo').show();
+    $('#fileInfo').html(gFileName+" Recieved Successfully")
+var progress=0;
+ $('#progress-rec').css('width', progress+'%').attr('aria-valuenow', progress); 
+
+    $('#recProgressbar').hide();
+
+
+ fileChunks = []; recvdSize=0; gFilesize=0; gFileType="",gFileName="";
      incoming=false;
-    
+
   }
 
  
 
 if(incoming==false){
+  $('#recProgressbar').hide();
   console.log("clearing the setInterval")
        clearInterval(timer);
     timer = null
@@ -257,6 +297,9 @@ var url = URL.createObjectURL(blob);
  
     $('#msgs').append('<br><a target="blank" href="'+url+'">Download</a>')
 
+    
+
+
   }
   
 
@@ -266,10 +309,17 @@ var url = URL.createObjectURL(blob);
   {
 
       if(connected)
-      $('peerStatus').html("<font color=green>Connected</font>")
-      else
+      {
+        $('peerStatus').html("<font color=green>Connected</font>")
+        $('#connectForm').hide()
 
-      $('peerStatus').html("<font color=red>Diconnected</font>")
+      }
+      else
+{
+   $('peerStatus').html("<font color=red>Diconnected</font>")
+      $('#connectForm').show()
+}
+     
 
   }
 
@@ -318,7 +368,16 @@ var url = URL.createObjectURL(blob);
       // Eventhandler for file input. 
       function sendfile() {
 
+var sentProgress=5;
+$('#progress-sent').css('width', sentProgress+'%').attr('aria-valuenow', sentProgress); 
+ 
+
+        $('#sentProgressbar').show();
+        $('#sentstatus').html("Preparing To send");
+
+ 
          const file = input.files[0];
+         gFileName=file.name;
     console.log('Sending', file);
     peerConn.send('BEGIN_TRANSFER'); 
 

@@ -1,15 +1,22 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>WebRTC By VIkash</title>
+	<title>anna - Superfast P2P File Transfer - Secure Share</title>
 	
 </head>
 <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa&display=swap" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="css/upload.css">
 <style>
 	body{
-		padding: 10px;
+		 
 		background-color: #1E293B;
 		color:white;
+		max-width: 100%;
+		width: 100%;
+		font-family: 'Comfortaa', cursive;
 	}
 	.custom_file {
   margin: auto;
@@ -17,40 +24,103 @@
   position: absolute;
   z-index: -1;
 }
+body {
+  padding-top: 50px;
+}
+.starter-template {
+  padding: 40px 15px;
+  text-align: center;
+}
 </style>
 <body>
-<h1>Welcome to WebRTC website with PeerJs Demo</h1>
+
+
+
+
+
+ 
+
+    <div class="container"  >
+
+    	<div class="row">
+
+    		<div class="col col-md-12  ">
+    			 <a class="navbar-brand" href="#">
+    			 	<img src="img/anna_logo.png" width="300px"></a>
+       <br>
+    			#1 Peer-to-Peer File Sharing Website<br>
+    			<big>Share Large Files Without Waiting To Be uploaded.<br>
+
+    			</big><br><br>
 My Id: <myId></myId><br>
 
-<input type="text" id="remotePeerId" placeholder="ENter PeerId: ">
-<button id="peerConnectBtn">COnnect</button>
+<form class="form-inline" id="connectForm" action="#">
+<input  class="form-control" type="text" id="remotePeerId" placeholder="Enter PeerId: ">
+<button id="peerConnectBtn" class="btn btn-primary"><i class="fa fa-paper-plane"></i> Connect</button>
 <br>
+</form>
 
 Peer id:<remotePeer></remotePeer> Status:<peerStatus></peerStatus>
 <br>
 
-<div class="form-group">
-	<label for="upload" class="btn btn-sm btn-primary">Upload Image</label>
+<div class="form-group" id="uploadFrom" style="display: none;">
+<div style="display: none;">
+	<input type="text" id="msgTxt" placeholder="ENter msg to send ">
+<button id="sendMsgBtn" class="btn btn-primary"><i class="fa fa-paper-plane"></i></button><hr>
+</div>
+ 
+<div style="border:1px solid #eaeaae; padding: 10px;" class="file-upload">
+	<label for="upload" class="btn btn-sm btn-pri0mary">Choose File</label>
 	 <input type="file" class="text-center form-control-file custom_file" id="upload" name="user_image">
-	 <label for="file_default">No File Choosen </label>
+	 <label for="file_default" class="file-select-name" id="noFile">No File Choosen </label>
 	 <label for="file_name"><b></b></label>
-	 <button id="uploadBtn">UPLOAD</button>
+	 <button id="uploadBtn" class="btn btn-primary"><i class="fa fa-paper-plane"></i> SEND</button>
+</div>
+	
  </div>
-<input type="text" id="msgTxt" placeholder="ENter msg to send ">
-<button id="sendMsgBtn">SEND</button>
-<hr>
+
+
+
+
+
+
+
+ 
 <div>
 	<div id="progressText" style="display: none;"></div> 
-</div><hr>
+</div> 
 
 <br>
 Messages:<br>
-<div id="msgs"></div>
+<div id="msgs" style="background-color: #1E2936; color: white; font-size: small; " style="padding: 10px;"></div>
 <div id="result"></div>
 
 
 
+      
+    		</div>
+    		
+    	</div>
+ 
 
+         <div id="recProgressbar" class="progress recProgressbar" style="display: none;">
+          <div class="progress-bar" role="progressbar" id="progress-rec" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">
+            <span class="sr-only" id="recstatus">0% Recieved</span>
+          </div>
+        </div> 
+
+        <div id="sentProgressbar" class="progress sentProgressbar" style="display: none;">
+          <div class="progress-bar" id="progress-sent" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">
+            <span class="sr-only" id="sentstatus">0% Sent</span>
+          </div>
+        </div>
+
+
+        <div class="alert alert-success" role="alert" id="fileInfo" style="display: none;">
+ 
+</div>
+ 
+    </div><!-- /.container -->
 
 
 <!-- The core Firebase JS SDK is always required and must be listed first -->
@@ -87,6 +157,8 @@ Messages:<br>
 <script src="jquery.js"></script>
 
 <script src="app.js"></script>
+ <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css" integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous"/>
+
 
 </body>
 </html>
