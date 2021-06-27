@@ -60,24 +60,47 @@ $('remotePeer').html(remotePeer);
       conn = peer.connect(remotePeer,{serialization:"binary-utf8"});
 
 console.log(conn.serialization);
+
       conn.on('open', function() {
 
         connected=true;
-        // Receive messages
+        // Receive messages 
         conn.on('data', function(data) {
-          console.log('Received', data.text);
-          $('#msgs').append("<br>Recvd:"+data.text);
-          
-          console.log(data)
-          
-           
-          if(data.file!=null){
-            $('#msgs').append("<br>Recvd file:"+data.file.filetype);
-            gotfile(data.file)
-          }
-        
 
-        });
+
+
+          console.log('UPER', data);
+          
+          
+ 
+ if (data.toString() === 'Done!') {
+    // Once, all the chunks are received, combine them to form a Blob
+    console.log('chunk', fileChunks); 
+    const file = new Blob(fileChunks,{type:gFileType});
+  
+    console.log('Received', file); 
+
+var url = URL.createObjectURL(file);
+
+ 
+    $('#msgs').append('<br><a target="blank" href="'+url+'">Download</a>')
+
+   // gotfile(gFileType,gFileName,fileChunks);
+    fileChunks = [];
+    
+  }
+  else {
+    // Keep appending various file chunks 
+    gFileType=data.file.filetype;
+          gFileName=data.file.filename;
+
+    fileChunks.push(data.file.file);
+  }
+
+
+
+});
+
       
         // Send messages
        // conn.send('Hello!');
@@ -97,6 +120,12 @@ console.log(conn.serialization);
   });
 
 
+var fileChunks = [];var gFileType,gFileName;
+
+var timer=null;
+
+var incomingFileName=""; var incoming=false; var gFilesize=0,recvdSize=0,downloadURL="";
+
   peer.on('connection', function(conn) { 
        
 
@@ -105,21 +134,49 @@ console.log(conn.serialization);
 
         connected=true;
         // Receive messages
+
         conn.on('data', function(data) {
-          console.log('Received', data.text);
-          $('#msgs').append("<br>Recvd:"+data.text);
-          
-          console.log(data)
-          if(data.file!=null){
-            $('#msgs').append("<br>Recvd file:"+data.file.filetype);
-            gotfile(data.file)
+
+
+
+
+
+if(data=="BEGIN_TRANSFER"){
+  incoming=true;
+  startProgress();
+
+  timer = setInterval(function() {
+      checkTransfer();
+
+    }, 1000);
+
+
+}
+
+
+          if(data.file!=undefined){
+             gFileType=data.file.filetype;
+          gFileName=data.file.filename;
+          gFilesize=data.file.filesize;
+
+          recvdSize=recvdSize+data.file.file.byteLength;
+
+
+    console.log('gFIleSize'+gFilesize+" recvd size: "+recvdSize); 
+
+    fileChunks.push(data.file.file);
+     console.log("Inserted to array");
+
+
+
           }
-        
+          
+ 
 
+ 
+   
 
-
-
-        });
+ 
       
         peerConn=conn;
   updatePeerStatus();
@@ -130,11 +187,66 @@ console.log(conn.serialization);
 
 
   });
+    });
 
 
-  function gotfile(data){ 
+
+  function checkTransfer(){
+
+ if (recvdSize==gFilesize  && gFilesize>0 ) {
+    // Once, all the chunks are received, combine them to form a Blob
+    console.log('chunk', fileChunks); 
+    const file = new Blob(fileChunks,{type:gFileType});
+  
+    console.log('Finished the transfer. All bytes recv', file); 
+
+
+    console.log('EQ gFIleSize'+gFilesize+" recvd size: "+recvdSize); 
+
+var url = URL.createObjectURL(file);
+
+ 
+    $('#msgs').append('<br><a target="blank" href="'+url+'">Download</a>')
+
+   // gotfile(gFileType,gFileName,fileChunks);
+    fileChunks = []; recvdSize=0; gFilesize=0;
+     incoming=false;
+    
+  }
+
+ 
+
+if(incoming==false){
+  console.log("clearing the setInterval")
+       clearInterval(timer);
+    timer = null
+ $('#progressText').html("Transfer Finished");
+
+
+     }
+
+
+  }
+
+
+
+  function startProgress(){
+
+    $('#progressText').html("incoming file...");
+     $('#progressText').show();
+
+
+     
+
+  }
+
+
+
+
+  function gotfile(filetype,filename,file){ 
    
-    var blob = new Blob([data.file], {type: data.filetype});
+   console.log(filetype+",file"+filename+" "+file)
+    var blob = new Blob(file,filename,{type:filetype});
 var url = URL.createObjectURL(blob);
 
  
@@ -200,58 +312,61 @@ var url = URL.createObjectURL(blob);
     
       // Eventhandler for file input. 
       function sendfile() {
-        var files = input.files;
-        // Pass the file to the blob, not the input[0].
-        fileData = new Blob([files[0]]);
 
+         const file = input.files[0];
+    console.log('Sending', file);
+    peerConn.send('BEGIN_TRANSFER'); 
+
+    // We convert the file from Blob to ArrayBuffer
+    file.arrayBuffer()
+    .then(buffer => {
+      /**
+       * A chunkSize (in Bytes) is set here
+       * I have it set to 16KB
+       */
+      const chunkSize = 16 * 1024;
+
+      // Keep chunking, and sending the chunks to the other peer
+      while(buffer.byteLength) {
+        const chunk = buffer.slice(0, chunkSize);
+        buffer = buffer.slice(chunkSize, buffer.byteLength);
         
+       
 
-
-        var file = files[0];
-    var blob = new Blob(input.files, {type: file.type});
-
-    var fileData={
-        file: blob,
+ var fileData={
+        file: chunk,
         filename: file.name,
-        filetype: file.type
+        filetype: file.type,
+        filesize: file.size
     };
 
-    console.log(fileData);
-
-    peerConn.send({"text":"Reciving file","file":fileData});
+    console.log(file.size);
 
 
-        // Pass getBuffer to promise.
-        var promise = new Promise(getBuffer);
-        // Wait for promise to be resolved, or log error.
-        promise.then(function(data) {
-          // Here you can pass the bytes to another function.
-        //  output.innerHTML = data.toString();
+
+
+      peerConn.send({"text":"sending file","file":fileData});
+
+console.log("sending chunk..."+buffer.byteLength)
+
         
-         
-          console.log(data);
-        }).catch(function(err) {
-          console.log('Error: ',err);
-        });
       }
-    
-      /* 
-        Create a function which will be passed to the promise
-        and resolve it when FileReader has finished loading the file.
-      */
-      function getBuffer(resolve) {
-        var reader = new FileReader();
-        reader.readAsArrayBuffer(fileData);
-        reader.onload = function() {
-          var arrayBuffer = reader.result
-          var bytes = new Uint8Array(arrayBuffer);
-          resolve(bytes);
-        }
-      }
-    
-      // Eventlistener for file input.
-     // input.addEventListener('change', openfile, false);
+
+
+    }).then(res => {
+      console.log("done with sending chunk...")
+//peerConn.send('Done!'); 
+    });
+ 
+
    
+
+ 
+
+
+      }
+    
+      
 
     document.getElementById("uploadBtn").addEventListener("click", function() {
         sendfile();

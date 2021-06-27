@@ -32,6 +32,11 @@ Peer id:<remotePeer></remotePeer> Status:<peerStatus></peerStatus>
  </div>
 <input type="text" id="msgTxt" placeholder="ENter msg to send ">
 <button id="sendMsgBtn">SEND</button>
+<hr>
+<div>
+	<div id="progressText" style="display: none;"></div> 
+</div><hr>
+
 <br>
 Messages:<br>
 <div id="msgs"></div>
