@@ -27,11 +27,25 @@
   z-index: -1;
 }
 body {
-  padding-top: 50px;
+  padding-top: 10px;
 }
 .starter-template {
   padding: 40px 15px;
   text-align: center;
+}
+
+
+@media screen and (min-width: 601px) {
+  .stats {
+    font-size: 120px;
+    margin: 25px;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .stats {
+    font-size: 50px;
+  }
 }
 </style>
 <body>
@@ -46,12 +60,14 @@ body {
 
     	<div class="row">
 
-    		<div class="col col-md-12  ">
+    		<div class="col col-md-12  " >
     			 <a class="navbar-brand" href="#">
     			 	<img src="img/anna_logo.png" width="300px"></a>
-       <br>
-    			#1 Peer-to-Peer File Sharing Website<br>
-    			<big>Share Large Files Without Waiting To Be uploaded.<br>
+       <br><small>
+          #1 Peer-to-Peer File Sharing Website<br>
+           Share Large Files Without Waiting To Be uploaded.<br>
+       </small>
+    		
 
     			</big><br><br>
 My Id: <myId></myId><br>
@@ -65,20 +81,23 @@ My Id: <myId></myId><br>
 Peer id:<remotePeer></remotePeer> Status:<peerStatus></peerStatus>
 <br>
 
-<div class="form-group" id="uploadFrom" style="display: none;">
+
+
+<div id="mainarea" style=" ">
+  <div class="form-group" id="uploadFrom" style="display: none;">
 <div style="display: none;">
-	<input type="text" id="msgTxt" placeholder="ENter msg to send ">
+  <input type="text" id="msgTxt" placeholder="ENter msg to send ">
 <button id="sendMsgBtn" class="btn btn-primary"><i class="fa fa-paper-plane"></i></button><hr>
 </div>
  
 <div style="border:1px solid #eaeaae; padding: 10px;" class="file-upload">
-	<label for="upload" class="btn btn-sm btn-pri0mary">Choose File</label>
-	 <input type="file" class="text-center form-control-file custom_file" id="upload" name="user_image">
-	 <label for="file_default" class="file-select-name" id="noFile">No File Choosen </label>
-	 <label for="file_name"><b></b></label>
-	 <button id="uploadBtn" class="btn btn-primary"><i class="fa fa-paper-plane"></i> SEND</button>
+  <label for="upload" class="btn btn-sm btn-pri0mary">Choose File</label>
+   <input type="file" class="text-center form-control-file custom_file" id="upload" name="user_image">
+   <label for="file_default" class="file-select-name" id="noFile">No File Choosen </label>
+   <label for="file_name"><b></b></label>
+   <button id="uploadBtn" class="btn btn-primary"><i class="fa fa-paper-plane"></i> SEND</button>
 </div>
-	
+  
  </div>
 
 
@@ -89,7 +108,7 @@ Peer id:<remotePeer></remotePeer> Status:<peerStatus></peerStatus>
 
  
 <div>
-	<div id="progressText" style="display: none;"></div> 
+  <div id="progressText" style="display: none;"></div> 
 </div> 
 
 <br>
@@ -98,14 +117,30 @@ Messages:<br>
 <div id="result"></div>
 
 
+</div>
+
+
+
 
       
-    		</div>
     		
-    	</div>
  
 
-         <div id="recProgressbar" class="progress recProgressbar" style="display: none;">
+        
+
+
+        <div class="alert alert-success" role="alert" id="fileInfo" style="display: none;">
+ 
+</div>
+ <div id="progressarea"   align="center" style="display: none;margin: 15px;">
+  
+<div class="row" >
+  <div class="col col-auto"><h1 style="  font-weight: bold;" class="stats" id="speedstats">0</h1>KB/s <br>Speed</div>
+  <div class="col col-auto"><h1 style="  font-weight: bold;" class="stats" id="bytessentstats">0</h1>MB <br>SENT</div>
+  <div class="col col-auto"><h1 style="  font-weight: bold;" class="stats" id="filesizestats">0</h1>MB <br>Size</div>
+</div>
+
+ <div id="recProgressbar" class="progress recProgressbar" style="display: none;">
           <div class="progress-bar" role="progressbar" id="progress-rec" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">
             <span class="sr-only" id="recstatus">0% Recieved</span>
           </div>
@@ -116,12 +151,13 @@ Messages:<br>
             <span class="sr-only" id="sentstatus">0% Sent</span>
           </div>
         </div>
-
-
-        <div class="alert alert-success" role="alert" id="fileInfo" style="display: none;">
- 
 </div>
- 
+
+
+</div>
+        
+      </div>
+
     </div><!-- /.container -->
 
 

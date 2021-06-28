@@ -40,10 +40,12 @@ peer.on('open', function(id) {
 
             console.log(data)
 
-if(data.peerId!=uid)
-            $('#msgs').append("Peer Connected: "+data.peerId+"<br>");
+if(data.peerId!=uid){
+   $('#msgs').prepend("Peer Connected: "+data.peerId+"<br>");
 
- 
+ $('#remotePeerId').val(data.peerId);
+}
+           
 
 
     
@@ -56,7 +58,7 @@ var conn; var connected=false; var peerConn;
 
 var fileChunks = [];var gFileType,gFileName;
 
-var timer=null; var sentProgress=0;
+var timer=null; var sentProgress=0; var upFname="",upFsize=0,upProgress=0; 
 
 var incomingFileName=""; var incoming=false; var gFilesize=0,recvdSize=0,downloadURL="";
 
@@ -101,12 +103,17 @@ console.log(conn.serialization);
 
  $('#sentstatus').html(sentProgress+"% Sent")
 
+upProgress=sentProgress;
 
  if(sentProgress==100){
     $('#fileInfo').show();
     $('#fileInfo').html(gFileName+" SENT Successfully")
     
     $('#sentProgressbar').hide();
+
+    upProgress=100;
+
+    // clearInterval(timer);
  }
         
 }
@@ -135,12 +142,16 @@ console.log(conn.serialization);
 
 
   peer.on('connection', function(conn) { 
-       
 
+    console.log(conn);
+       if(conn.peer!=undefined){
+  $('remotePeer').html(conn.peer)
+} 
+ connected=true;
 
       conn.on('open', function() {
 
-        connected=true;
+       
         // Receive messages
 
         conn.on('data', function(data) {
@@ -206,15 +217,18 @@ $('#recstatus').html(progress+"% Recieved")
 
  
       
-        peerConn=conn;
-  updatePeerStatus();
-
 
 
       });
 
 
+        
+
   });
+
+
+      peerConn=conn;
+  updatePeerStatus();
     });
 
 
@@ -368,16 +382,15 @@ var url = URL.createObjectURL(blob);
       // Eventhandler for file input. 
       function sendfile() {
 
-var sentProgress=5;
-$('#progress-sent').css('width', sentProgress+'%').attr('aria-valuenow', sentProgress); 
- 
+        showProgressArea(true);
 
-        $('#sentProgressbar').show();
-        $('#sentstatus').html("Preparing To send");
+
 
  
          const file = input.files[0];
          gFileName=file.name;
+         upFsize=file.size;
+         upFname=file.name;
     console.log('Sending', file);
     peerConn.send('BEGIN_TRANSFER'); 
 
@@ -437,3 +450,51 @@ console.log("sending chunk..."+buffer.byteLength)
         sendfile();
       });
   
+ 
+
+  function showProgressArea(sent){
+
+if(sent==true){
+
+   var sentProgress=5;
+$('#progress-sent').css('width', sentProgress+'%').attr('aria-valuenow', sentProgress); 
+ 
+
+        $('#sentProgressbar').show();
+        $('#sentstatus').html("Preparing To send");
+
+$('#progressarea').show();
+
+
+counterForUploadSpeed();
+
+
+}
+   
+
+
+
+
+
+  }
+
+function counterForUploadSpeed(){ 
+
+timer= setInterval(function(){
+
+console.log("Checking upload speed");
+
+var upFsizeInMB=(upFsize/(1024*1024));
+$('#filesizestats').html(upFsizeInMB.toFixed(2)+"");
+
+var bytesent=(upFsize*upProgress/100)/(1024*1024);
+console.log(bytesent+"sent "+upFsize+"upfzise"+upProgress+"upprogress")
+$('#bytessentstats').html(bytesent.toFixed(2)+"");
+
+
+
+},1000);
+
+}
+
+ 
