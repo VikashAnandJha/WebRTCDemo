@@ -58,11 +58,14 @@ var conn; var connected=false; var peerConn;
 
 var fileChunks = [];var gFileType,gFileName;
 
-var timer=null; var sentProgress=0; var upFname="",upFsize=0,upProgress=0; 
+var timer=null; var sentProgress=0; 
+var upFname="",upFsize=0,upProgress=0; 
+var downFname="",downFsize=0,downProgress=0; var downloadtimer=null;
 
 var incomingFileName=""; var incoming=false; var gFilesize=0,recvdSize=0,downloadURL="";
 
-
+  var prevProgress=0,currentProgress=0;
+var speedCheckRUnning=false;
   $('#peerConnectBtn').click(function(e){
 
     e.preventDefault();
@@ -114,8 +117,13 @@ upProgress=sentProgress;
     upProgress=100;
 
      clearInterval(timer);
+     timer=null;
      $('#progressarea').fadeOut(2000)
      $('#mainarea').show()
+
+     prevProgress=0,currentProgress=0;
+
+
  }
         
 }
@@ -177,6 +185,7 @@ if(data=="BEGIN_TRANSFER"){
 
     }, 1000);
 
+showProgressArea(false);
 
 }
 
@@ -185,23 +194,41 @@ if(data=="BEGIN_TRANSFER"){
              gFileType=data.file.filetype;
           gFileName=data.file.filename;
           gFilesize=data.file.filesize;
+          downFsize=gFilesize;
 
           recvdSize=recvdSize+data.file.file.byteLength;
 
 
     console.log('gFIleSize'+gFilesize+" recvd size: "+recvdSize); 
 
+
+
     fileChunks.push(data.file.file);
 
     var progress=(recvdSize/gFilesize)*100;
 
+ showDownloadProgress(gFilesize,recvdSize,progress);
+
+
  progress=   Math.round( progress )
 
-     console.log("Inserted to array:"+progress+"%");
+
+ if(progress==100){
+
+   clearInterval(downloadtimer);
+   downloadtimer=null;
+   prevProgress=0,currentProgress=0;
+   speedCheckRUnning=false;
+ }
+
+ downProgress=progress;
+
+    // console.log("Inserted to array:"+progress+"%");
 $('#recProgressbar').show();
  $('#progress-rec').css('width', progress+'%').attr('aria-valuenow', progress); 
 
 $('#recstatus').html(progress+"% Recieved")
+
 
 
  conn.send("SENT_PROGRESS_"+progress);
@@ -238,19 +265,21 @@ $('#recstatus').html(progress+"% Recieved")
   function checkTransfer(){
 
  if (recvdSize==gFilesize  && gFilesize>0 ) {
-    // Once, all the chunks are received, combine them to form a Blob
-    console.log('chunk', fileChunks); 
+    // Once, all the chunks are received, combine them to form a Blob 
 
     //var array = new Uint8Array(fileChunks);
 
+downProgress=100;
 
 
     const file = new Blob(fileChunks,{type:gFileType});
   
-    console.log('Finished the transfer. All bytes recv', file); 
+    console.log('Finished the transfer. All bytes recv'); 
 
 
     console.log('EQ gFIleSize'+gFilesize+" recvd size: "+recvdSize); 
+
+
 
 var url = URL.createObjectURL(file);
 
@@ -269,6 +298,10 @@ var progress=0;
     $('#recProgressbar').hide();
 
 
+
+ $('#progressarea').fadeOut(2000)
+     $('#mainarea').show()
+
  fileChunks = []; recvdSize=0; gFilesize=0; gFileType="",gFileName="";
      incoming=false;
 
@@ -280,7 +313,9 @@ if(incoming==false){
   $('#recProgressbar').hide();
   console.log("clearing the setInterval")
        clearInterval(timer);
-    timer = null
+    timer = null;
+    prevProgress=0,currentProgress=0;
+
  $('#progressText').html("Transfer Finished");
 
 
@@ -471,6 +506,22 @@ $('#progressarea').show();
 counterForUploadSpeed();
 
 
+}else{
+
+var progress=0;
+ $('#progress-rec').css('width', progress+'%').attr('aria-valuenow', progress); 
+
+    $('#recProgressbar').show();
+
+$('#progressarea').show();
+
+ //restting old data
+  $('#filesizestats').html(0);
+$('#bytessentstats').html(0);
+$('#speedstats').html(0);
+  
+ showDownloadProgress(0,0,0);
+
 }
    
 
@@ -480,7 +531,6 @@ counterForUploadSpeed();
 
   }
 
-  var prevProgress=0,currentProgress=0;
 
 function counterForUploadSpeed(){ 
 
@@ -520,6 +570,58 @@ $('#speedstats').html(speed.toFixed(2)+"");
 prevProgress=currentProgress;
 
 },1000);
+
+}
+
+
+
+function showDownloadProgress(size,rec,progress){ 
+
+
+ downFsize=size;
+ downProgress=progress;
+
+ var downFsizeInMB=(size/(1024*1024));
+
+if(downFsize>0)
+$('#filesizestats').html(downFsizeInMB.toFixed(2)+"");
+
+var byterec=(downFsize*downProgress/100)/(1024*1024);
+console.log(byterec+"rec "+downFsize+"downfile"+downProgress+"downProgress")
+if(byterec>0)
+$('#bytessentstats').html(byterec.toFixed(2)+"");
+
+
+if(!speedCheckRUnning){
+  downloadtimer= setInterval(function(){
+
+speedCheckRUnning=true;
+console.log("Checking download speed");
+
+
+
+
+currentProgress=downProgress;
+
+var diffProgress=currentProgress-prevProgress;
+
+
+var speed=(downFsize*diffProgress/100)/(1024*1024);
+
+console.log("DownloadFSize"+downFsize+" - "+currentProgress+"currentProgress "+prevProgress+"prevProgress"+diffProgress+"diffProgress"+" seed:"+speed)
+
+if(speed>0)
+$('#speedstats').html(speed.toFixed(2)+"");
+
+prevProgress=currentProgress;
+
+},1000);
+}
+
+
+
+
+
 
 }
 
