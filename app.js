@@ -113,7 +113,9 @@ upProgress=sentProgress;
 
     upProgress=100;
 
-    // clearInterval(timer);
+     clearInterval(timer);
+     $('#progressarea').fadeOut(2000)
+     $('#mainarea').show()
  }
         
 }
@@ -478,9 +480,20 @@ counterForUploadSpeed();
 
   }
 
+  var prevProgress=0,currentProgress=0;
+
 function counterForUploadSpeed(){ 
 
+
+  //restting old data
+  $('#filesizestats').html(0);
+$('#bytessentstats').html(0);
+$('#speedstats').html(0);
+
+
+
 timer= setInterval(function(){
+
 
 console.log("Checking upload speed");
 
@@ -492,6 +505,19 @@ console.log(bytesent+"sent "+upFsize+"upfzise"+upProgress+"upprogress")
 $('#bytessentstats').html(bytesent.toFixed(2)+"");
 
 
+currentProgress=upProgress;
+
+var diffProgress=currentProgress-prevProgress;
+
+
+var speed=(upFsize*diffProgress/100)/(1024*1024);
+
+console.log(currentProgress+"currentProgress "+prevProgress+"prevProgress"+diffProgress+"diffProgress"+" seed:"+speed)
+
+if(speed>0)
+$('#speedstats').html(speed.toFixed(2)+"");
+
+prevProgress=currentProgress;
 
 },1000);
 
